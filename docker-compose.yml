@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   spark-master:
     image: bitnami/spark:latest
     container_name: spark-master
@@ -8,8 +9,9 @@ services:
     environment:
       - SPARK_MODE=master
       - SPARK_MASTER_PORT=7077
-      - SPARK_EVENTLOG_ENABLED=true
-      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/logs
+      - SPARK_METRICS_ENABLED=true
+      - SPARK_EVENT_LOG_ENABLED=true
+      - SPARK_EVENT_LOG_DIR=/bitnami/spark/logs
     ports:
       - "8080:8080" # Spark Web UI
       - "7077:7077" # Spark Master port
@@ -18,7 +20,7 @@ services:
     volumes:
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/bitnami/spark/logs
 
   spark-worker-1:
     image: bitnami/spark:latest
@@ -27,15 +29,16 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G # Memory for Spark Worker
+      - SPARK_WORKER_MEMORY=4G # Memory for Spark Worker
       - SPARK_WORKER_CORES=2 # Number of CPU cores for Spark Worker
-      - SPARK_EVENTLOG_ENABLED=true
-      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/logs
+      - SPARK_METRICS_ENABLED=true
+      - SPARK_EVENT_LOG_ENABLED=true
+      - SPARK_EVENT_LOG_DIR=/bitnami/spark/logs
     deploy:
       resources:
         limits:
           cpus: '2' # Limit to 2 CPUs
-          memory: 2G # Limit to 2GB Memory
+          memory: 4G # Limit to 4GB Memory
     ports:
       - "8081:8081" # Spark Worker Web UI
     networks:
@@ -43,7 +46,7 @@ services:
     volumes:
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/bitnami/spark/logs
 
   spark-worker-2:
     image: bitnami/spark:latest
@@ -52,15 +55,16 @@ services:
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G # Memory for Spark Worker
+      - SPARK_WORKER_MEMORY=4G # Memory for Spark Worker
       - SPARK_WORKER_CORES=2 # Number of CPU Cores for Spark Worker
-      - SPARK_EVENTLOG_ENABLED=true
-      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/logs
+      - SPARK_METRICS_ENABLED=true
+      - SPARK_EVENT_LOG_ENABLED=true
+      - SPARK_EVENT_LOG_DIR=/bitnami/spark/logs
     deploy:
       resources:
         limits:
           cpus: '2' # Limit to 2 CPUs
-          memory: 2G # Limit to 2GB Memory
+          memory: 4G # Limit to 4GB Memory
     ports:
       - "8082:8082" # Spark Worker Web UI
     networks:
@@ -68,22 +72,23 @@ services:
     volumes:
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/bitnami/spark/logs
 
   spark-history-server:
-    image: rangareddy1988/spark-history-server:3.5.0
+    image: bitnami/spark:latest
     container_name: spark-history-server
     platform: linux/amd64
+    command: /opt/bitnami/spark/sbin/start-history-server.sh
+    depends_on:
+      - spark-master
     environment:
-      - SPARK_HISTORY_UI_PORT=18080
-      - SPARK_DAEMON_MEMORY=4g
-      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:///tmp/spark-events
-    ports:
-      - 18080:18080
-      - 4040:4040
+      - SPARK_HISTORY_FS_LOG_DIRECTORY=file:/tmp/spark-events
+      - SPARK_HISTORY_OPTS=-Dspark.history.ui.port=18080
+      - SPARK_NO_DAEMONIZE=true
     volumes:
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/tmp/spark-events
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/var/log/spark
+      - ./local-spark-events:/tmp/spark-events
+    ports:
+      - "18080:18080"
 
 networks:
   spark-network:
