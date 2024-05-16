@@ -8,7 +8,7 @@ services:
       - SPARK_MODE=master
       - SPARK_MASTER_PORT=7077
       - SPARK_EVENTLOG_ENABLED=true
-      - SPARK_EVENTLOG_DIR=/opt/bitnami/spark/logs
+      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/logs
     ports:
       - "8080:8080" # Spark Web UI
       - "7077:7077" # Spark Master port
@@ -27,6 +27,8 @@ services:
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=2G # Memory for Spark Worker
       - SPARK_WORKER_CORES=2 # Number of CPU cores for Spark Worker
+      - SPARK_EVENTLOG_ENABLED=true
+      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/logs
     deploy:
       resources:
         limits:
@@ -49,6 +51,8 @@ services:
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=2G # Memory for Spark Worker
       - SPARK_WORKER_CORES=2 # Number of CPU Cores for Spark Worker
+      - SPARK_EVENTLOG_ENABLED=true
+      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/logs
     deploy:
       resources:
         limits:
@@ -69,6 +73,8 @@ services:
     environment:
       - SPARK_MODE=history-server
       - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=/opt/bitnami/spark/logs
+      - SPARK_HISTORY_FS_LOGDIRECTORY=/opt/bitnami/spark/logs
+      - SPARK_HISTORY_OPTS=-Dspark.history.ui.port=18080
     ports:
       - "18080:18080" # Spark History Server Web UI
     networks:
