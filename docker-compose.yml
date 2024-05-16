@@ -67,21 +67,6 @@ services:
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
 
-  spark-history-server:
-    image: bde2020/spark-history-server:3.1.1-hadoop3.2
-    container_name: spark-history-server
-    environment:
-      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:///opt/bitnami/spark/logs
-      - SPARK_HISTORY_FS_LOGDIRECTORY=file:///opt/bitnami/spark/logs
-      - SPARK_HISTORY_OPTS=-Dspark.history.ui.port=18080
-    ports:
-      - "18080:18080" # Spark History Server Web UI
-    networks:
-      - spark-network
-    volumes:
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
-    platform: linux/amd64
-
 networks:
   spark-network:
     driver: bridge
