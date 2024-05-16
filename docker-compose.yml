@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  spark-master:
+    image: bitnami/spark:latest
+    container_name: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_EVENTLOG_ENABLED=true
+      - SPARK_EVENTLOG_DIR=/opt/bitnami/spark/logs
+    ports:
+      - "8080:8080" # Spark Web UI
+      - "7077:7077" # Spark Master port
+    networks:
+      - spark-network
+    volumes:
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
+
+  spark-worker-1:
+    image: bitnami/spark:latest
+    container_name: spark-worker-1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G # Memory for Spark Worker
+      - SPARK_WORKER_CORES=2 # Number of CPU cores for Spark Worker
+    deploy:
+      resources:
+        limits:
+          cpus: '2' # Limit to 2 CPUs
+          memory: 2G # Limit to 2GB Memory
+    ports:
+      - "8081:8081" # Spark Worker Web UI
+    networks:
+      - spark-network
+    volumes:
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
+
+  spark-worker-2:
+    image: bitnami/spark:latest
+    container_name: spark-worker-2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G # Memory for Spark Worker
+      - SPARK_WORKER_CORES=2 # Number of CPU Cores for Spark Worker
+    deploy:
+      resources:
+        limits:
+          cpus: '2' # Limit to 2 CPUs
+          memory: 2G # Limit to 2GB Memory
+    ports:
+      - "8082:8082" # Spark Worker Web UI
+    networks:
+      - spark-network
+    volumes:
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
+
+  spark-history-server:
+    image: bitnami/spark:latest
+    container_name: spark-history-server
+    environment:
+      - SPARK_MODE=history-server
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=/opt/bitnami/spark/logs
+    ports:
+      - "18080:18080" # Spark History Server Web UI
+    networks:
+      - spark-network
+    volumes:
+      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/opt/bitnami/spark/logs
+
+networks:
+  spark-network:
+    driver: bridge
