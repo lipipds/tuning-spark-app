@@ -9,9 +9,8 @@ services:
     environment:
       - SPARK_MODE=master
       - SPARK_MASTER_PORT=7077
-      - SPARK_METRICS_ENABLED=true
-      - SPARK_EVENT_LOG_ENABLED=true
-      - SPARK_EVENT_LOG_DIR=/bitnami/spark/logs
+      - SPARK_EVENTLOG_ENABLED=true
+      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/event-logs
     ports:
       - "8080:8080" # Spark Web UI
       - "7077:7077" # Spark Master port
@@ -20,7 +19,7 @@ services:
     volumes:
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/bitnami/spark/logs
+      - spark-logs:/opt/bitnami/spark/event-logs
 
   spark-worker-1:
     image: bitnami/spark:latest
@@ -31,9 +30,8 @@ services:
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=4G # Memory for Spark Worker
       - SPARK_WORKER_CORES=2 # Number of CPU cores for Spark Worker
-      - SPARK_METRICS_ENABLED=true
-      - SPARK_EVENT_LOG_ENABLED=true
-      - SPARK_EVENT_LOG_DIR=/bitnami/spark/logs
+      - SPARK_EVENTLOG_ENABLED=true
+      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/event-logs
     deploy:
       resources:
         limits:
@@ -46,7 +44,7 @@ services:
     volumes:
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/bitnami/spark/logs
+      - spark-logs:/opt/bitnami/spark/event-logs
 
   spark-worker-2:
     image: bitnami/spark:latest
@@ -57,9 +55,8 @@ services:
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=4G # Memory for Spark Worker
       - SPARK_WORKER_CORES=2 # Number of CPU Cores for Spark Worker
-      - SPARK_METRICS_ENABLED=true
-      - SPARK_EVENT_LOG_ENABLED=true
-      - SPARK_EVENT_LOG_DIR=/bitnami/spark/logs
+      - SPARK_EVENTLOG_ENABLED=true
+      - SPARK_EVENTLOG_DIR=file:///opt/bitnami/spark/event-logs
     deploy:
       resources:
         limits:
@@ -72,7 +69,7 @@ services:
     volumes:
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/src:/opt/bitnami/spark/jobs
       - /Users/luanmorenomaciel/GitHub/tuning-spark-app/storage:/opt/bitnami/spark/storage
-      - /Users/luanmorenomaciel/GitHub/tuning-spark-app/logs:/bitnami/spark/logs
+      - spark-logs:/opt/bitnami/spark/event-logs
 
   spark-history-server:
     image: bitnami/spark:latest
@@ -82,14 +79,19 @@ services:
     depends_on:
       - spark-master
     environment:
-      - SPARK_HISTORY_FS_LOG_DIRECTORY=file:/tmp/spark-events
-      - SPARK_HISTORY_OPTS=-Dspark.history.ui.port=18080
-      - SPARK_NO_DAEMONIZE=true
-    volumes:
-      - ./local-spark-events:/tmp/spark-events
+      - SPARK_HISTORY_UI_PORT=18080
+      - SPARK_DAEMON_MEMORY=4g
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=file:///opt/bitnami/spark/event-logs
     ports:
-      - "18080:18080"
+      - 18080:18080
+      - 4040:4040
+    volumes:
+      - spark-logs:/opt/bitnami/spark/event-logs
 
 networks:
   spark-network:
     driver: bridge
+
+volumes:
+  spark-logs:
+    driver: local
