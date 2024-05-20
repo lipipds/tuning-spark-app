@@ -1,0 +1,7 @@
+FROM docker.io/bitnami/spark:3.5
+
+RUN mkdir -p /opt/bitnami/spark/logs/events
+
+COPY config/spark/spark-defaults.conf /opt/bitnami/spark/conf/
+
+EXPOSE 8080 18080
