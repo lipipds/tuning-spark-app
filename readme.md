@@ -43,7 +43,6 @@ docker exec -it spark-master /opt/bitnami/spark/bin/spark-submit \
   /opt/bitnami/spark/jobs/etl-rides-fhvhv.py
 ```
 
-
 ### destroy spark cluster & history server
 ```shell
 docker-compose down

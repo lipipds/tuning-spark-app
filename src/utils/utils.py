@@ -10,9 +10,12 @@ from py4j.java_gateway import java_import
 def init_spark_session(app_name):
     """Initialize Spark session."""
 
-    spark = SparkSession.builder.appName(app_name).getOrCreate()
+    spark = SparkSession.builder \
+        .appName(app_name) \
+        .config("spark.sql.adaptive.enabled", "false") \
+        .getOrCreate()
     print(SparkConf().getAll())
-    spark.sparkContext.setLogLevel("INFO")
+    spark.sparkContext.setLogLevel("WARN")
 
     return spark
 

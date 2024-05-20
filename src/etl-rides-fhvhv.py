@@ -1,26 +1,22 @@
 """
-PySpark Functions:
-- Built-in
-- User-Defined [UDFs]
-- Pandas UDFs [Vectorized UDFs]
+ETL Rides FHVHV
+Rows: 764.952.870
+
+Issue: Processed Files Increase
 """
-
-import time
-import pandas as pd
-
-from pyspark.sql.functions import col, udf, pandas_udf
-from pyspark.sql.types import DoubleType
 
 from utils.utils import init_spark_session, list_files
 from utils.transformers import transform_hvfhs_license_num
 
 
 def main():
-    spark = init_spark_session("etl-rides-green")
+    spark = init_spark_session("etl-rides-fhvhv")
 
     file_fhvhv = "./storage/fhvhv/*.parquet"
     list_files(spark, file_fhvhv)
     df_fhvhv = spark.read.parquet(file_fhvhv)
+
+    df_fhvhv = df_fhvhv.repartition(500)
 
     file_zones = "./storage/zones.csv"
     list_files(spark, file_zones)
@@ -33,33 +29,6 @@ def main():
     df_fhvhv.show()
 
     df_fhvhv = transform_hvfhs_license_num(df_fhvhv)
-
-    # Built-In
-    start_time = time.time()
-    df_with_km_built_in = df_fhvhv.withColumn("trip_km", col("trip_miles") * 1.60934)
-    df_with_km_built_in.count()
-    print(f"built-in: {time.time() - start_time} seconds")
-
-    # User-Defined
-    def miles_to_km(miles):
-        return miles * 1.60934
-
-    miles_to_km_udf = udf(miles_to_km, DoubleType())
-
-    start_time = time.time()
-    df_with_km_udf = df_fhvhv.withColumn("trip_km", miles_to_km_udf(col("trip_miles")))
-    df_with_km_udf.count()
-    print(f"udf: {time.time() - start_time} seconds")
-
-    # Pandas UDF
-    @pandas_udf(DoubleType())
-    def miles_to_km_pandas_udf(miles: pd.Series) -> pd.Series:
-        return miles * 1.60934
-
-    start_time = time.time()
-    df_with_km_pandas_udf = df_fhvhv.withColumn("trip_km", miles_to_km_pandas_udf(col("trip_miles")))
-    df_with_km_pandas_udf.count()
-    print(f"pandas udf: {time.time() - start_time} seconds")
 
     df_fhvhv.createOrReplaceTempView("hvfhs")
     df_zones.createOrReplaceTempView("zones")
@@ -79,20 +48,32 @@ def main():
                bcf,
                sales_tax,
                congestion_surcharge,
-               airport_fee,
                tips,
                driver_pay,
                shared_request_flag,
                shared_match_flag
         FROM hvfhs
         INNER JOIN zones AS zones_pu
-        ON hvfhs.PULocationID = zones_pu.LocationID
+        ON CAST(hvfhs.PULocationID AS INT) = zones_pu.LocationID
         INNER JOIN zones AS zones_do
         ON hvfhs.DOLocationID = zones_do.LocationID
     """)
 
+    df_rides.createOrReplaceTempView("rides")
+
+    df_total_fare_aggregated = spark.sql("""
+        SELECT PU_Borough,
+               DO_Borough,
+               SUM(base_passenger_fare + tolls + bcf + sales_tax + congestion_surcharge + tips) AS total_fare,
+               SUM(trip_miles) AS total_trip_miles,
+               SUM(trip_time) AS total_trip_time
+        FROM rides
+        GROUP BY PU_Borough, DO_Borough
+        ORDER BY total_fare DESC""")
+
     df_rides.show()
-        
+    df_total_fare_aggregated.show()
+
 
 if __name__ == "__main__":
     main()
