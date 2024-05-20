@@ -35,12 +35,12 @@ docker logs spark-worker-2
 docker logs spark-history-server
 ```
 
-### run spark job on spark cluster [green taxi data]
+### run spark job on spark cluster
 ```shell
 docker exec -it spark-master /opt/bitnami/spark/bin/spark-submit \
   --master spark://spark-master:7077 \
   --deploy-mode client \
-  /opt/bitnami/spark/jobs/etl-rides-green.py
+  /opt/bitnami/spark/jobs/etl-rides-fhvhv.py
 ```
 
 

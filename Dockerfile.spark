@@ -1,7 +1,14 @@
 FROM docker.io/bitnami/spark:3.5
 
+USER root
+
 RUN mkdir -p /opt/bitnami/spark/logs/events
 
 COPY config/spark/spark-defaults.conf /opt/bitnami/spark/conf/
+
+RUN apt-get update && apt-get install -y python3 python3-pip
+
+COPY requirements.txt /opt/bitnami/spark/conf/requirements.txt
+RUN pip3 install -r /opt/bitnami/spark/conf/requirements.txt
 
 EXPOSE 8080 18080
