@@ -14,6 +14,7 @@ def init_spark_session(app_name):
         .appName(app_name) \
         .config("spark.sql.adaptive.enabled", "true") \
         .config("spark.executor.memory", "3g") \
+        .config("spark.sql.shuffle.partitions", "100") \
         .getOrCreate()
     print(SparkConf().getAll())
     spark.sparkContext.setLogLevel("INFO")

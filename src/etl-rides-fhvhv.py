@@ -20,7 +20,7 @@ def main():
         "dropoff_datetime", "trip_miles", "trip_time", "base_passenger_fare",
         "tolls", "bcf", "sales_tax", "congestion_surcharge", "tips", "driver_pay",
         "shared_request_flag", "shared_match_flag"
-    ).where("trip_miles > 0 AND trip_time > 0")
+    ).filter("trip_miles > 0")
 
     file_zones = "./storage/zones.csv"
     list_files(spark, file_zones)
@@ -97,15 +97,10 @@ def main():
                 total_fare DESC
         """)
 
-    # TODO set partition number
-    part_num = 50
-    df_rides = df_rides.coalesce(part_num)
-    df_total_trip_time = df_total_trip_time.coalesce(part_num)
-    df_hvfhs_license_num = df_hvfhs_license_num.coalesce(part_num)
-
+    # TODO repartition and write parquet files
     df_rides.write.parquet("./storage/rides/hvfhs", mode="overwrite")
-    df_total_trip_time.write.parquet("./storage/rides/total_trip_time", mode="overwrite")
-    df_hvfhs_license_num.write.parquet("./storage/rides/hvfhs_license_num", mode="overwrite")
+    df_total_trip_time.repartition("PU_Borough", "DO_Borough").write.parquet("./storage/rides/total_trip_time", mode="overwrite")
+    df_hvfhs_license_num.repartition("hvfhs_license_num").write.parquet("./storage/rides/hvfhs_license_num", mode="overwrite")
 
 
 if __name__ == "__main__":
