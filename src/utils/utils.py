@@ -12,10 +12,11 @@ def init_spark_session(app_name):
 
     spark = SparkSession.builder \
         .appName(app_name) \
-        .config("spark.sql.adaptive.enabled", "false") \
+        .config("spark.sql.adaptive.enabled", "true") \
+        .config("spark.executor.memory", "3g") \
         .getOrCreate()
     print(SparkConf().getAll())
-    spark.sparkContext.setLogLevel("WARN")
+    spark.sparkContext.setLogLevel("INFO")
 
     return spark
 

@@ -1,7 +1,4 @@
 # Apache Spark & Trip Record Data Analysis
-
-### Green Taxi Trip Record Data: ?
-
 https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page
 
 ### verify local spark
@@ -40,7 +37,18 @@ docker logs spark-history-server
 docker exec -it spark-master /opt/bitnami/spark/bin/spark-submit \
   --master spark://spark-master:7077 \
   --deploy-mode client \
+  /opt/bitnami/spark/jobs/etl-rides-fhvhv-basic.py
+
+docker exec -it spark-master /opt/bitnami/spark/bin/spark-submit \
+  --master spark://spark-master:7077 \
+  --deploy-mode client \
   /opt/bitnami/spark/jobs/etl-rides-fhvhv.py
+```
+
+### access spark history server
+```shell
+http://localhost:8080/
+http://localhost:18080/
 ```
 
 ### destroy spark cluster & history server
