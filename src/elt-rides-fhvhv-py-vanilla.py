@@ -1,26 +1,40 @@
 """
-ETL Rides FHVHV
-Rows: 764.952.870
+docker exec -it spark-master /opt/bitnami/spark/bin/spark-submit \
+  --master spark://spark-master:7077 \
+  --deploy-mode client \
+  /opt/bitnami/spark/jobs/elt-rides-fhvhv-py-vanilla.py
 """
 
+from pyspark.sql.types import StringType
+from pyspark.sql.functions import udf
+
 from utils.utils import init_spark_session, list_files
-from utils.transformers import transform_hvfhs_license_num
-from pyspark.sql.functions import broadcast
+
+
+def hvfhs_license_num(license_num):
+    """
+    :param license_num: The license number of the ride-sharing service
+    :return: The name of the ride-sharing service associated with the given license number
+    """
+
+    if license_num == 'HV0002':
+        return 'Juno'
+    elif license_num == 'HV0003':
+        return 'Uber'
+    elif license_num == 'HV0004':
+        return 'Via'
+    elif license_num == 'HV0005':
+        return 'Lyft'
+    else:
+        return 'Unknown'
 
 
 def main():
-    spark = init_spark_session("etl-rides-fhvhv")
+    spark = init_spark_session("elt-rides-fhvhv-py-vanilla")
 
     file_fhvhv = "./storage/fhvhv/2022/*.parquet"
     list_files(spark, file_fhvhv)
-
-    # TODO column pruning & predicate pushdown
-    df_fhvhv = spark.read.parquet(file_fhvhv).select(
-        "hvfhs_license_num", "PULocationID", "DOLocationID", "pickup_datetime",
-        "dropoff_datetime", "trip_miles", "trip_time", "base_passenger_fare",
-        "tolls", "bcf", "sales_tax", "congestion_surcharge", "tips", "driver_pay",
-        "shared_request_flag", "shared_match_flag"
-    ).filter("trip_miles > 0")
+    df_fhvhv = spark.read.parquet(file_fhvhv)
 
     file_zones = "./storage/zones.csv"
     list_files(spark, file_zones)
@@ -32,11 +46,10 @@ def main():
     print(f"number of rows: {df_fhvhv.count()}")
     df_fhvhv.show()
 
-    df_fhvhv = transform_hvfhs_license_num(df_fhvhv)
-    df_fhvhv.createOrReplaceTempView("hvfhs")
+    fnc_hvfhs_license_num = udf(hvfhs_license_num, StringType())
+    df_fhvhv.withColumn('hvfhs_license_num', fnc_hvfhs_license_num(df_fhvhv['hvfhs_license_num']))
 
-    # TODO broadcast the zones dataframe
-    df_zones = broadcast(df_zones)
+    df_fhvhv.createOrReplaceTempView("hvfhs")
     df_zones.createOrReplaceTempView("zones")
 
     df_rides = spark.sql("""
@@ -45,6 +58,7 @@ def main():
                zones_pu.Zone AS PU_Zone,
                zones_do.Borough AS DO_Borough,
                zones_do.Zone AS DO_Zone,
+               request_datetime,
                pickup_datetime,
                dropoff_datetime,
                trip_miles,
@@ -63,6 +77,7 @@ def main():
         ON CAST(hvfhs.PULocationID AS INT) = zones_pu.LocationID
         INNER JOIN zones AS zones_do
         ON hvfhs.DOLocationID = zones_do.LocationID
+        ORDER BY request_datetime DESC
     """)
 
     df_rides.createOrReplaceTempView("rides")
@@ -70,7 +85,9 @@ def main():
     df_total_trip_time = spark.sql("""
             SELECT 
                 PU_Borough,
+                PU_Zone,
                 DO_Borough,
+                DO_Zone,
                 SUM(base_passenger_fare + tolls + bcf + sales_tax + congestion_surcharge + tips) AS total_fare,
                 SUM(trip_miles) AS total_trip_miles,
                 SUM(trip_time) AS total_trip_time
@@ -78,9 +95,9 @@ def main():
                 rides
             GROUP BY 
                 PU_Borough, 
-                DO_Borough
-            ORDER BY 
-                total_fare DESC
+                PU_Zone,
+                DO_Borough,
+                DO_Zone
         """)
 
     df_hvfhs_license_num = spark.sql("""
@@ -93,14 +110,10 @@ def main():
                 rides
             GROUP BY 
                 hvfhs_license_num
-            ORDER BY 
-                total_fare DESC
         """)
 
-    # TODO repartition and write parquet files
-    df_rides.write.parquet("./storage/rides/hvfhs", mode="overwrite")
-    df_total_trip_time.repartition("PU_Borough", "DO_Borough").write.parquet("./storage/rides/total_trip_time", mode="overwrite")
-    df_hvfhs_license_num.repartition("hvfhs_license_num").write.parquet("./storage/rides/hvfhs_license_num", mode="overwrite")
+    df_total_trip_time.show()
+    df_hvfhs_license_num.show()
 
 
 if __name__ == "__main__":

@@ -1,13 +1,18 @@
 """
 Functions for PySpark with Business Logic
+
+Best: Native Spark Function [Large DataSets]
+Moderate: Vectorized Pandas Function [PyArrow]
+Low: Normal UDF Function [Python]
 """
 
 from pyspark.sql.functions import col, when
 
 
-def transform_hvfhs_license_num(df):
+def hvfhs_license_num(df):
     """
-    Transform the Hvfhs_license_num field based on the following logic:
+    Transform the hvfhs_license_num field based on the following logic:
+
     - HV0002: Juno
     - HV0003: Uber
     - HV0004: Via
