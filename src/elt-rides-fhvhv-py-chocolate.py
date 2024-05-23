@@ -58,7 +58,6 @@ def main():
         ON CAST(hvfhs.PULocationID AS INT) = zones_pu.LocationID
         INNER JOIN zones AS zones_do
         ON hvfhs.DOLocationID = zones_do.LocationID
-        ORDER BY request_datetime DESC
     """)
 
     df_rides.createOrReplaceTempView("rides")

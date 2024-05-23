@@ -5,8 +5,8 @@ docker exec -it spark-master /opt/bitnami/spark/bin/spark-submit \
   /opt/bitnami/spark/jobs/elt-rides-fhvhv-py-vanilla.py
 """
 
-from pyspark.sql.types import StringType
 from pyspark.sql.functions import udf
+from pyspark.sql.types import StringType
 
 from utils.utils import init_spark_session, list_files
 
@@ -46,8 +46,9 @@ def main():
     print(f"number of rows: {df_fhvhv.count()}")
     df_fhvhv.show()
 
-    fnc_hvfhs_license_num = udf(hvfhs_license_num, StringType())
-    df_fhvhv.withColumn('hvfhs_license_num', fnc_hvfhs_license_num(df_fhvhv['hvfhs_license_num']))
+    hvfhs_license_num_udf = udf(hvfhs_license_num, StringType())
+    spark.udf.register("hvfhs_license_num", hvfhs_license_num_udf)
+    df_fhvhv = df_fhvhv.withColumn('hvfhs_license_num', hvfhs_license_num_udf(df_fhvhv['hvfhs_license_num']))
 
     df_fhvhv.createOrReplaceTempView("hvfhs")
     df_zones.createOrReplaceTempView("zones")
