@@ -2,3 +2,5 @@ pyspark==3.5.1
 pandas==2.2.2
 pyarrow==16.1.0
 sparkmeasure==0.24.0
+deltalake==0.17.4
+delta-spark==3.2.0
