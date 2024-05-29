@@ -92,8 +92,7 @@ def main():
                 hvfhs_license_num
         """)
 
-    df_total_trip_time.show()
-    df_hvfhs_license_num.show()
+    # TODO remove show & display
 
 
 if __name__ == "__main__":
