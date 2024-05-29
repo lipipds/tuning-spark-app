@@ -33,6 +33,7 @@ def hvfhs_license_num(license_num):
 def main():
     spark = init_spark_session("elt-rides-fhvhv-py-vanilla-spark-measure")
 
+    # TODO init spark measure stage metrics
     stage_metrics = StageMetrics(spark)
     stage_metrics.begin()
 
@@ -120,8 +121,10 @@ def main():
     df_total_trip_time.show()
     df_hvfhs_license_num.show()
 
+    # TODO collect spark measure metrics for reporting
     stage_metrics.end()
     stage_metrics.print_report()
+    stage_metrics.print_memory_report()
 
 
 if __name__ == "__main__":
