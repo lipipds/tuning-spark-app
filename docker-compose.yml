@@ -15,7 +15,7 @@ services:
       - SPARK_SSL_ENABLED=no
       - SPARK_USER=spark
     ports:
-      - "8080:8080"  # Spark Master Web UI
+      - "8080:8080"
     volumes:
       - ${APP_SRC_PATH}:/opt/bitnami/spark/jobs
       - ${APP_STORAGE_PATH}:/opt/bitnami/spark/storage
@@ -82,7 +82,7 @@ services:
     depends_on:
       - spark-master
 
- # Spark History Server
+  # Spark History Server
   spark-history-server:
     container_name: spark-history-server
     image: owshq-spark-history-server:3.5
@@ -103,29 +103,3 @@ services:
       - spark-master
       - spark-worker-1
       - spark-worker-2
-
-  # ElasticSearch
-  elasticsearch:
-    container_name: elastic-search
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.14.0
-    environment:
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms1g -Xmx1g
-    ports:
-      - "9200:9200"
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
-
-  # Kibana
-  kibana:
-    container_name: kibana
-    image: docker.elastic.co/kibana/kibana:7.14.0
-    ports:
-      - "5601:5601"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-    depends_on:
-      - elasticsearch
-
-volumes:
-  es_data:

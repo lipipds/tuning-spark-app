@@ -3,19 +3,10 @@ FROM docker.io/bitnami/spark:3.5
 USER root
 
 RUN apt-get update && apt-get install -y python3 python3-pip curl
-
 RUN mkdir -p /opt/bitnami/spark/logs/events
 
 COPY config/spark/spark-defaults.conf /opt/bitnami/spark/conf/
 COPY config/spark/jars /opt/bitnami/spark/jars
-COPY config/spark/log4j2.properties /opt/bitnami/spark/conf/
-
-RUN curl -L -o /opt/bitnami/spark/jars/log4j-core-2.14.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar
-RUN curl -L -o /opt/bitnami/spark/jars/log4j-api-2.14.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-api/2.14.1/log4j-api-2.14.1.jar
-RUN curl -L -o /opt/bitnami/spark/jars/log4j-web-2.14.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-web/2.14.1/log4j-web-2.14.1.jar
-RUN curl -L -o /opt/bitnami/spark/jars/log4j-slf4j-impl-2.14.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-slf4j-impl/2.14.1/log4j-slf4j-impl-2.14.1.jar
-RUN curl -L -o /opt/bitnami/spark/jars/log4j-appender-elasticsearch-7.14.0.jar https://repo1.maven.org/maven2/org/appenders/log4j/log4j-appender-elasticsearch/7.14.0/log4j-appender-elasticsearch-7.14.0.jar
-RUN curl -L -o /opt/bitnami/spark/jars/log4j2-plugins-2.14.1.jar https://repo1.maven.org/maven2/org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar
 
 COPY requirements.txt /opt/bitnami/spark/conf/requirements.txt
 RUN pip3 install -r /opt/bitnami/spark/conf/requirements.txt
