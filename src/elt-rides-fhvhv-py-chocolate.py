@@ -10,26 +10,29 @@ from utils.utils import init_spark_session, list_files
 from utils.transformers import hvfhs_license_num
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('py4j')
 
 
 def main():
+    logger.info("init spark session")
     spark = init_spark_session("elt-rides-fhvhv-py-chocolate")
 
+    logger.info("list fhvhv files")
     file_fhvhv = "./storage/fhvhv/2022/*.parquet"
     list_files(spark, file_fhvhv)
     df_fhvhv = spark.read.parquet(file_fhvhv)
 
+    logger.info("list zones file")
     file_zones = "./storage/zones.csv"
     list_files(spark, file_zones)
     df_zones = spark.read.option("delimiter", ",").option("header", True).csv(file_zones)
 
-    print(f"number of partitions: {df_fhvhv.rdd.getNumPartitions()}")
-    logger.info("number of partitions: %s", df_fhvhv.rdd.getNumPartitions())
+    num_partitions = df_fhvhv.rdd.getNumPartitions()
+    logger.info("number of partitions: %d", num_partitions)
     df_fhvhv.printSchema()
 
-    print(f"number of rows: {df_fhvhv.count()}")
-    logger.info("number of rows: %s", df_fhvhv.count())
+    num_rows = df_fhvhv.count()
+    logger.info("number of rows: %d", num_rows)
     df_fhvhv.show()
 
     # TODO use of: built-in spark function

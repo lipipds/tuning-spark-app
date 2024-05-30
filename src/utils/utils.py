@@ -11,11 +11,10 @@ import logging
 import pyspark
 
 from delta import *
-from pyspark import SparkConf
 from py4j.java_gateway import java_import
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('py4j')
 
 
 def init_spark_session(app_name):
@@ -28,10 +27,10 @@ def init_spark_session(app_name):
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
         .enableHiveSupport()
-        )
+    )
 
     spark = configure_spark_with_delta_pip(builder).getOrCreate()
-    logger.info("spark config: %s", SparkConf().getAll())
+    logger.info("spark config: %s", spark.sparkContext.getConf().getAll())
     spark.sparkContext.setLogLevel("INFO")
 
     return spark
@@ -49,4 +48,4 @@ def list_files(spark, file_pattern):
     file_statuses = fs.globStatus(path)
 
     for status in file_statuses:
-        print(status.getPath().toString())
+        logger.info("file: %s", status.getPath().toString())
