@@ -130,5 +130,19 @@ services:
     depends_on:
       - elasticsearch
 
+  # Logstash
+  logstash:
+    container_name: logstash
+    image: docker.elastic.co/logstash/logstash:7.14.0
+    ports:
+      - "5044:5044"
+    volumes:
+      - ${APP_LOG_PATH}:/opt/bitnami/spark/logs/events
+      - ${APP_LOGSTASH_PATH}:/usr/share/logstash/pipeline
+    environment:
+      - LS_JAVA_OPTS=-Xmx1g -Xms1g
+    depends_on:
+      - elasticsearch
+
 volumes:
   es_data:
