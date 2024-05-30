@@ -7,11 +7,15 @@ Spark = 3.5.1
 Scala = 2.12
 """
 
+import logging
 import pyspark
 
 from delta import *
 from pyspark import SparkConf
 from py4j.java_gateway import java_import
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
+logger = logging.getLogger(__name__)
 
 
 def init_spark_session(app_name):
@@ -27,7 +31,7 @@ def init_spark_session(app_name):
         )
 
     spark = configure_spark_with_delta_pip(builder).getOrCreate()
-    print(SparkConf().getAll())
+    logger.info("spark config: %s", SparkConf().getAll())
     spark.sparkContext.setLogLevel("INFO")
 
     return spark
