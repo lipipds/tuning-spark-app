@@ -10,7 +10,18 @@ from utils.utils import init_spark_session, list_files
 from utils.transformers import hvfhs_license_num
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-logger = logging.getLogger('py4j')
+
+logger = logging.getLogger('my_custom_logger')
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+console_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
+logger.propagate = True
 
 
 def main():

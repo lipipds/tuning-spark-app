@@ -9,16 +9,26 @@ Scala = 2.12
 
 import logging
 import pyspark
-
 from delta import *
 from py4j.java_gateway import java_import
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
-logger = logging.getLogger('py4j')
+
+logger = logging.getLogger('owshq')
+logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+console_handler.setFormatter(formatter)
+
+logger.addHandler(console_handler)
+logger.propagate = True
 
 
 def init_spark_session(app_name):
-    """Initialize Spark session."""
+    """Initialize Spark session with log4j configuration."""
 
     builder = (
         pyspark.sql.SparkSession.builder.appName(app_name)
@@ -26,6 +36,8 @@ def init_spark_session(app_name):
         .config("spark.executor.memory", "3g")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
         .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+        .config("spark.driver.extraJavaOptions", "-Dlog4j.configuration=file:/opt/bitnami/spark/conf/log4j2.properties")
+        .config("spark.executor.extraJavaOptions", "-Dlog4j.configuration=file:/opt/bitnami/spark/conf/log4j2.properties")
         .enableHiveSupport()
     )
 
